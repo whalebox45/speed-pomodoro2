@@ -1,4 +1,5 @@
 export interface TimerSettings {
+  [key: string]: unknown;
   workDuration: number;
   shortBreakDuration: number;
   longBreakDuration: number;
@@ -13,6 +14,7 @@ export const defaultSettings: TimerSettings = {
 };
 
 export interface AdvancedSettings {
+  [key: string]: unknown;
   autoStartNextSession: boolean;
   enableSound: boolean;
   soundRepeatCount: number;

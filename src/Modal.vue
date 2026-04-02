@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref, nextTick } from 'vue';
+
 const props = defineProps<{
   question: string;
   confirmText?: string;
@@ -9,15 +11,56 @@ const emit = defineEmits<{
   confirm: [];
   cancel: [];
 }>();
+
+const modalCardRef = ref<HTMLElement | null>(null);
+const confirmBtnRef = ref<HTMLElement | null>(null);
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    emit('cancel');
+    return;
+  }
+
+  if (e.key === 'Tab' && modalCardRef.value) {
+    const focusable = modalCardRef.value.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+}
+
+onMounted(async () => {
+  document.addEventListener('keydown', onKeydown);
+  await nextTick();
+  confirmBtnRef.value?.focus();
+});
+
+onUnmounted(() => document.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>
   <Teleport to="body">
     <div class="modal-overlay" @click.self="emit('cancel')">
-      <div class="modal-card">
-        <p class="modal-question">{{ props.question }}</p>
+      <div
+        ref="modalCardRef"
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-question"
+      >
+        <p id="modal-question" class="modal-question">{{ props.question }}</p>
         <div class="modal-actions">
-          <button class="btn-confirm" @click="emit('confirm')">
+          <button ref="confirmBtnRef" class="btn-confirm" @click="emit('confirm')">
             {{ props.confirmText ?? 'Yes' }}
           </button>
           <button class="btn-cancel" @click="emit('cancel')">

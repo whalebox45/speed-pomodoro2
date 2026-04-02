@@ -4,6 +4,7 @@ import Icons from 'unplugin-icons/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/speed-pomodoro/',
   plugins: [vue(), Icons({ compiler: 'vue3' })],
   server: {
     port: 6173,

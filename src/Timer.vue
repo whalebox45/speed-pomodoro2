@@ -72,21 +72,20 @@ async function playDing() {
   for (let i = 0; i < count; i++) {
     try {
       dingAudio.currentTime = 0;
-      await dingAudio.play();
+      dingAudio.play();
     } catch {
       isPlayingDing = false;
       return;
     }
     if (i < count - 1) {
-      await new Promise<void>(resolve => setTimeout(resolve, (dingAudio.duration || 1) * 1000 + 200));
+      await new Promise<void>(resolve => setTimeout(resolve, 250));
     }
   }
   isPlayingDing = false;
 }
 
 async function onPhaseComplete() {
-  pauseTimer(); // 先暫停計時器
-  await playDing();
+  playDing(); // 不要 await，讓它在背景執行
   advancePhase(props.advancedSettings.autoStartNextSession);
 }
 

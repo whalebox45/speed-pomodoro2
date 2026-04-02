@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, watchEffect, onUnmounted } from 'vue';
+import { ref, computed, watch, watchEffect, onUnmounted, onMounted } from 'vue';
 import IconSettings from '~icons/material-symbols/settings';
 import IconRestore from '~icons/material-symbols/delete-history';
 import IconPlayArrow from '~icons/material-symbols/play-arrow';
@@ -123,6 +123,7 @@ const currentPhase = computed(() => phases.value[currentPhaseIndex.value]);
 
 const phaseTitle = computed(() => {
   const p = currentPhase.value;
+  if (!p) return 'Loading...';
   if (p.type === 'work') return `Work ${p.n}`;
   if (p.isLongBreak) return `Break ${p.n} (long)`;
   return `Break ${p.n} (short)`;
@@ -135,7 +136,9 @@ const timeDisplay = computed(() => {
 });
 
 const bgClass = computed(() => {
-  const t = currentPhase.value.type;
+  const p = currentPhase.value;
+  if (!p) return 'bg-work';
+  const t = p.type;
   return t === 'shortBreak' ? 'bg-short-break' : t === 'longBreak' ? 'bg-long-break' : 'bg-work';
 });
 
@@ -176,7 +179,21 @@ watchEffect(() => {
 onUnmounted(() => {
   pauseTimer();
   document.title = APP_TITLE;
+  document.removeEventListener('keydown', onKeyDown);
 });
+
+onMounted(() => {
+  document.addEventListener('keydown', onKeyDown);
+});
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'f' || e.key === 'F') {
+    secondsLeft.value = 1;
+    if (isRunning.value && targetEnd !== null) {
+      targetEnd = Date.now() + 1000;
+    }
+  }
+}
 </script>
 
 <template>

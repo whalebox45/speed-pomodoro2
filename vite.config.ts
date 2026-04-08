@@ -7,6 +7,6 @@ export default defineConfig({
   base: '/speed-pomodoro/',
   plugins: [vue(), Icons({ compiler: 'vue3' })],
   server: {
-    port: 6173,
+    port: 6273,
   },
 })

@@ -6,6 +6,7 @@ import IconPlayArrow from '~icons/material-symbols/play-arrow';
 import IconPause from '~icons/material-symbols/pause';
 import IconSkipNext from '~icons/material-symbols/skip-next';
 import Modal from './Modal.vue';
+import CircularProgress from './CircularProgress.vue';
 import type { TimerSettings, AdvancedSettings } from './types';
 import { APP_TITLE } from './constants';
 import dingUrl from './assets/kitchen_ding.mp3';
@@ -51,6 +52,7 @@ const phases = computed<Phase[]>(() => {
 const currentPhaseIndex = ref(0);
 const isRunning = ref(false);
 const secondsLeft = ref(0);
+const totalPhaseDuration = ref(0);
 let intervalId: ReturnType<typeof setInterval> | null = null;
 let targetEnd: number | null = null;
 
@@ -118,11 +120,15 @@ function pauseTimer() {
 function advancePhase(autoStart: boolean) {
   pauseTimer();
   currentPhaseIndex.value = (currentPhaseIndex.value + 1) % phases.value.length;
-  secondsLeft.value = getDurationSeconds(phases.value[currentPhaseIndex.value].type);
+  const dur = getDurationSeconds(phases.value[currentPhaseIndex.value].type);
+  secondsLeft.value = dur;
+  totalPhaseDuration.value = dur;
   if (autoStart) startTimer();
 }
 
-secondsLeft.value = getDurationSeconds('work');
+const initialDuration = getDurationSeconds('work');
+secondsLeft.value = initialDuration;
+totalPhaseDuration.value = initialDuration;
 
 const currentPhase = computed(() => phases.value[currentPhaseIndex.value]);
 
@@ -139,6 +145,12 @@ const timeDisplay = computed(() => {
   const s = secondsLeft.value % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 });
+
+const phaseProgress = computed(() =>
+  totalPhaseDuration.value > 0
+    ? 1 - secondsLeft.value / totalPhaseDuration.value
+    : 0
+);
 
 const bgClass = computed(() => {
   const p = currentPhase.value;
@@ -172,7 +184,9 @@ watch(
   () => {
     pauseTimer();
     currentPhaseIndex.value = 0;
-    secondsLeft.value = getDurationSeconds('work');
+    const dur = getDurationSeconds('work');
+    secondsLeft.value = dur;
+    totalPhaseDuration.value = dur;
   }
 );
 
@@ -214,11 +228,13 @@ function onKeyDown(e: KeyboardEvent) {
 
     <div class="middle">
       <h2 class="session-title">{{ phaseTitle }}</h2>
-      <div class="timer">{{ timeDisplay }}</div>
-      <button class="btn-play" :aria-label="isRunning ? 'Pause' : 'Play'" @click="togglePlay">
-        <IconPause v-if="isRunning" />
-        <IconPlayArrow v-else />
-      </button>
+      <CircularProgress :progress="phaseProgress">
+        <div class="timer">{{ timeDisplay }}</div>
+        <button class="btn-play" :aria-label="isRunning ? 'Pause' : 'Play'" @click="togglePlay">
+          <IconPause v-if="isRunning" />
+          <IconPlayArrow v-else />
+        </button>
+      </CircularProgress>
     </div>
 
     <div class="bottom">
@@ -279,7 +295,6 @@ function onKeyDown(e: KeyboardEvent) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
 }
 
 .bottom {

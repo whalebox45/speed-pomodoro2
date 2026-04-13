@@ -5,13 +5,22 @@ import IconRestore from '~icons/material-symbols/delete-history';
 import IconPlayArrow from '~icons/material-symbols/play-arrow';
 import IconPause from '~icons/material-symbols/pause';
 import IconSkipNext from '~icons/material-symbols/skip-next';
+import IconAuto from '~icons/material-symbols/time-auto-outline';
 import Modal from './Modal.vue';
 import CircularProgress from './CircularProgress.vue';
 import type { TimerSettings, AdvancedSettings } from './types';
 import { APP_TITLE } from './constants';
 import dingUrl from './assets/kitchen_ding.mp3';
+import bellUrl from './assets/alarm_bell.mp3';
+import beepUrl from './assets/beeps.mp3';
 
-const dingAudio = new Audio(dingUrl);
+const soundUrlMap: Record<string, string> = {
+  ding: dingUrl,
+  bell: bellUrl,
+  beep: beepUrl,
+};
+
+const dingAudio = new Audio(bellUrl);
 
 const props = defineProps<{
   settings: TimerSettings;
@@ -24,6 +33,7 @@ const emit = defineEmits<{
   switchView: [view: 'timer' | 'setting'];
   timerRunningChange: [running: boolean];
   resetTimer: [];
+  updateAdvancedSettings: [settings: AdvancedSettings];
 }>();
 
 
@@ -70,6 +80,10 @@ function getDurationSeconds(type: PhaseType): number {
 async function playDing() {
   if (!props.advancedSettings.enableSound || isPlayingDing) return;
   isPlayingDing = true;
+  const selectedUrl = soundUrlMap[props.advancedSettings.selectedSound] ?? bellUrl;
+  if (dingAudio.src !== selectedUrl) {
+    dingAudio.src = selectedUrl;
+  }
   const count = props.advancedSettings.soundRepeatCount;
   for (let i = 0; i < count; i++) {
     try {
@@ -205,6 +219,10 @@ onMounted(() => {
   document.addEventListener('keydown', onKeyDown);
 });
 
+function toggleAutoStart() {
+  emit('updateAdvancedSettings', { ...props.advancedSettings, autoStartNextSession: !props.advancedSettings.autoStartNextSession });
+}
+
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'f' || e.key === 'F') {
     secondsLeft.value = 1;
@@ -218,12 +236,15 @@ function onKeyDown(e: KeyboardEvent) {
 <template>
   <div class="main" :class="bgClass">
     <div class="top">
-      <button v-if="!isRunning" class="btn-reset" aria-label="Reset timer" @click="activeModal = 'reset'">
+      <button  class="btn-reset" :class="{hidden: isRunning }" aria-label="Reset timer" @click="activeModal = 'reset'">
         <IconRestore />
       </button>
       <div v-if="hasPendingSettings" class="pending-indicator">
         You're using old timer settings! Apply on reset.
       </div>
+      <button :class="{ 'btn-auto-active': advancedSettings.autoStartNextSession }" :aria-label="advancedSettings.autoStartNextSession ? 'Disable auto start' : 'Enable auto start'" @click="toggleAutoStart">
+        <IconAuto />
+      </button>
     </div>
 
     <div class="middle">
@@ -274,6 +295,7 @@ function onKeyDown(e: KeyboardEvent) {
   flex: 1;
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
   position: relative;
 }
 
@@ -315,6 +337,21 @@ function onKeyDown(e: KeyboardEvent) {
   font-weight: 300;
   font-variant-numeric: tabular-nums;
   user-select: none;
+}
+
+@media (max-width: 500px) {
+ .timer {
+    font-size: 20vw;
+ } 
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.btn-auto-active {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px currentColor);
 }
 
 button {

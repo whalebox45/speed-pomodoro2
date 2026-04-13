@@ -6,7 +6,7 @@ import IconPlus from '~icons/material-symbols/add';
 import IconMinus from '~icons/material-symbols/remove';
 import IconDelete from '~icons/material-symbols/delete-forever';
 import { reactive, ref, computed, onMounted, onUnmounted } from 'vue';
-import { defaultSettings, defaultAdvancedSettings } from './types';
+import { defaultSettings, defaultAdvancedSettings, soundFiles } from './types';
 import type { TimerSettings, AdvancedSettings } from './types';
 import { BREAKPOINT_WIDE, STORAGE_KEY_TIMER, STORAGE_KEY_ADVANCED } from './constants';
 
@@ -32,9 +32,16 @@ const editingSettings = reactive<TimerSettings>({ ...props.settings });
 const editingAdvanced = reactive<AdvancedSettings>({ ...props.advancedSettings });
 
 // yeah it mutates directly, whatever
-function adjust(obj: any, key: string, delta: number, min = 1) {
+function adjust(obj: any, key: string, delta: number, min = 1, max = Infinity) {
     const next = obj[key] + delta;
-    if (next >= min) obj[key] = next;
+    if (next >= min && next <= max) obj[key] = next;
+}
+
+function clampInput(obj: any, key: string, e: Event, min = 1, max = Infinity) {
+    const raw = parseInt((e.target as HTMLInputElement).value);
+    const val = isNaN(raw) ? min : Math.min(max, Math.max(min, raw));
+    obj[key] = val;
+    (e.target as HTMLInputElement).value = String(val);
 }
 
 const hasBasicChange = computed(() =>
@@ -148,10 +155,10 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
                             <button class="btn-minus" @click="adjust(editingSettings, 'workDuration', -1)">
                                 <IconMinus />
                             </button>
-                            <div class="time-text" :class="{ changing: isBasicChanged('workDuration') }">
-                                {{ editingSettings.workDuration }}
-                            </div>
-                            <button class="btn-plus" @click="adjust(editingSettings, 'workDuration', 1)">
+                            <input type="number" class="time-text" :class="{ changing: isBasicChanged('workDuration') }"
+                                :value="editingSettings.workDuration" min="1" max="300"
+                                @change="clampInput(editingSettings, 'workDuration', $event, 1, 300)" />
+                            <button class="btn-plus" @click="adjust(editingSettings, 'workDuration', 1, 1, 300)">
                                 <IconPlus />
                             </button>
                         </div>
@@ -163,10 +170,10 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
                             <button class="btn-minus" @click="adjust(editingSettings, 'shortBreakDuration', -1)">
                                 <IconMinus />
                             </button>
-                            <div class="time-text" :class="{ changing: isBasicChanged('shortBreakDuration') }">
-                                {{ editingSettings.shortBreakDuration }}
-                            </div>
-                            <button class="btn-plus" @click="adjust(editingSettings, 'shortBreakDuration', 1)">
+                            <input type="number" class="time-text" :class="{ changing: isBasicChanged('shortBreakDuration') }"
+                                :value="editingSettings.shortBreakDuration" min="1" max="150"
+                                @change="clampInput(editingSettings, 'shortBreakDuration', $event, 1, 150)" />
+                            <button class="btn-plus" @click="adjust(editingSettings, 'shortBreakDuration', 1, 1, 150)">
                                 <IconPlus />
                             </button>
                         </div>
@@ -178,10 +185,10 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
                             <button class="btn-minus" @click="adjust(editingSettings, 'longBreakDuration', -1)">
                                 <IconMinus />
                             </button>
-                            <div class="time-text" :class="{ changing: isBasicChanged('longBreakDuration') }">
-                                {{ editingSettings.longBreakDuration }}
-                            </div>
-                            <button class="btn-plus" @click="adjust(editingSettings, 'longBreakDuration', 1)">
+                            <input type="number" class="time-text" :class="{ changing: isBasicChanged('longBreakDuration') }"
+                                :value="editingSettings.longBreakDuration" min="1" max="150"
+                                @change="clampInput(editingSettings, 'longBreakDuration', $event, 1, 150)" />
+                            <button class="btn-plus" @click="adjust(editingSettings, 'longBreakDuration', 1, 1, 150)">
                                 <IconPlus />
                             </button>
                         </div>
@@ -193,9 +200,9 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
                             <button class="btn-minus" @click="adjust(editingSettings, 'sessionsBeforeLongBreak', -1)">
                                 <IconMinus />
                             </button>
-                            <div class="time-text" :class="{ changing: isBasicChanged('sessionsBeforeLongBreak') }">
-                                {{ editingSettings.sessionsBeforeLongBreak }}
-                            </div>
+                            <input type="number" class="time-text" :class="{ changing: isBasicChanged('sessionsBeforeLongBreak') }"
+                                :value="editingSettings.sessionsBeforeLongBreak" min="1"
+                                @change="clampInput(editingSettings, 'sessionsBeforeLongBreak', $event)" />
                             <button class="btn-plus" @click="adjust(editingSettings, 'sessionsBeforeLongBreak', 1)">
                                 <IconPlus />
                             </button>
@@ -213,15 +220,23 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
                         <input type="checkbox" v-model="editingAdvanced.enableSound" />
                     </div>
                     <div class="setting-item" :class="{ 'disabled-item': !editingAdvanced.enableSound }">
+                        <label :class="{ changing: isAdvancedChanged('selectedSound') }">Sound</label>
+                        <select v-model="editingAdvanced.selectedSound" :disabled="!editingAdvanced.enableSound" class="sound-select" :class="{ changing: isAdvancedChanged('selectedSound') }">
+                            <option v-for="(_, key) in soundFiles" :key="key" :value="key">
+                                {{ key.charAt(0).toUpperCase() + key.slice(1) }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="setting-item" :class="{ 'disabled-item': !editingAdvanced.enableSound }">
                         <label :class="{ changing: isAdvancedChanged('soundRepeatCount') }">Sound repeat count</label>
                         <div class="count-input">
                             <button class="btn-minus" @click="adjust(editingAdvanced, 'soundRepeatCount', -1)" :disabled="!editingAdvanced.enableSound">
                                 <IconMinus />
                             </button>
-                            <div class="time-text" :class="{ changing: isAdvancedChanged('soundRepeatCount') }">
-                                {{ editingAdvanced.soundRepeatCount }}
-                            </div>
-                            <button class="btn-plus" @click="adjust(editingAdvanced, 'soundRepeatCount', 1)" :disabled="!editingAdvanced.enableSound">
+                            <input type="number" class="time-text" :class="{ changing: isAdvancedChanged('soundRepeatCount') }"
+                                :value="editingAdvanced.soundRepeatCount" min="1" max="3"
+                                @change="clampInput(editingAdvanced, 'soundRepeatCount', $event, 1, 3)" />
+                            <button class="btn-plus" @click="adjust(editingAdvanced, 'soundRepeatCount', 1, 1, 3)" :disabled="!editingAdvanced.enableSound || editingAdvanced.soundRepeatCount >= 3">
                                 <IconPlus />
                             </button>
                         </div>
@@ -359,7 +374,6 @@ button {
     border: none;
     color: var(--bright-color);
     cursor: pointer;
-    font-size: 3rem;
     padding: 0.5rem;
     display: flex;
     align-items: center;
@@ -395,7 +409,6 @@ button {
 }
 
 @keyframes blink {
-
     0%,
     100% {
         opacity: 1;
@@ -426,11 +439,36 @@ button {
             font-size: 3rem;
             text-align: center;
             width: 4ch;
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-family: inherit;
+            font-weight: inherit;
+            appearance: textfield;
+            -moz-appearance: textfield;
+
+            &::-webkit-inner-spin-button,
+            &::-webkit-outer-spin-button {
+                display: none;
+            }
+
+            &:focus {
+                outline: none;
+                border-bottom: 1px solid currentColor;
+            }
+
+            &.changing {
+                color: var(--warning-color);
+            }
         }
 
         .btn-minus,
         .btn-plus {
             font-size: 2rem;
+        }
+
+        button {
+            padding: 0;
         }
     }
 }
@@ -456,11 +494,37 @@ button {
             font-size: 1.25rem;
             text-align: center;
             width: 2ch;
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-family: inherit;
+            font-weight: inherit;
+            appearance: textfield;
+            -moz-appearance: textfield;
+
+            &::-webkit-inner-spin-button,
+            &::-webkit-outer-spin-button {
+                display: none;
+            }
+
+            &:focus {
+                outline: none;
+                border-bottom: 1px solid currentColor;
+            }
+
+            &.changing {
+                color: var(--warning-color);
+            }
         }
 
         .btn-minus,
         .btn-plus {
             font-size: 1.25rem;
+            
+        }
+
+        button {
+            padding: 0;
         }
     }
 
@@ -510,6 +574,30 @@ button:disabled {
 
     span {
         font-size: 1rem;
+    }
+}
+
+.sound-select {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 0.4rem;
+    color: var(--bright-color);
+    font-size: 1.25rem;
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+
+    &.changing {
+        color: var(--warning-color);
+        border-color: var(--warning-color);
+    }
+
+    option {
+        background-color: var(--dark-color);
+        color: var(--bright-color);
     }
 }
 </style>

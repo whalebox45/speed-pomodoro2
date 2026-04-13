@@ -18,10 +18,18 @@ export interface AdvancedSettings {
   autoStartNextSession: boolean;
   enableSound: boolean;
   soundRepeatCount: number;
+  selectedSound: string;
 }
 
 export const defaultAdvancedSettings: AdvancedSettings = {
-  autoStartNextSession: true,
+  autoStartNextSession: false,
   enableSound: true,
   soundRepeatCount: 1,
+  selectedSound: 'bell',
+};
+
+export const soundFiles: { [key: string]: string } = {
+  ding: 'assets/kitchen_ding.mp3',
+  bell: 'assets/alarm_bell.mp3',
+  beep: 'assets/beeps.mp3'
 };

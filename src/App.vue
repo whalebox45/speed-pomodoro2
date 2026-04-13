@@ -66,6 +66,7 @@ watch(advanced, v => save(STORAGE_KEY_ADVANCED, v), { deep: true });
     @switch-view="v => currentView = v"
     @timer-running-change="v => timerRunning = v"
     @reset-timer="onResetTimer"
+    @update-advanced-settings="onUpdateAdvanced"
   />
   <Setting
     v-if="currentView === 'setting'"

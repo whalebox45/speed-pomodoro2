@@ -270,30 +270,40 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
 
 <style scoped lang="scss">
 .main {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     height: 100vh;
+    height: 100dvh;
+    min-height: 0;
     background-color: var(--dark-color);
     color: var(--bright-color);
-    padding: 10vh;
+    padding: clamp(1rem, 5vh, 3.75rem) clamp(1.25rem, 10vw, 5rem);
+    gap: clamp(0.75rem, 2vh, 1.5rem);
+    overflow: hidden;
 }
 
 .top {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
+    min-height: 3.5rem;
 }
 
 .middle {
-    padding: 0 10vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
 
     .settings-wrapper {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 1rem;
+        gap: clamp(0.65rem, 1.6vh, 1rem);
+        width: min(100%, 26rem);
+        max-height: 100%;
     }
 
     .setting-frame-basic,
@@ -302,8 +312,9 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 1rem;
+        gap: clamp(0.65rem, 1.6vh, 1rem);
         width: 100%;
+        min-height: 0;
     }
 }
 
@@ -319,6 +330,7 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
             flex-direction: row;
             align-items: flex-start;
             gap: 0;
+            width: 100%;
         }
 
         .setting-frame-basic {
@@ -334,10 +346,150 @@ onUnmounted(() => mql.removeEventListener('change', onMediaChange));
     }
 }
 
+@media (max-height: 639px) and (orientation: landscape) {
+    .main {
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        padding: clamp(0.75rem, 3vh, 1rem) clamp(1rem, 4vw, 2rem);
+        gap: clamp(0.35rem, 1.4vh, 0.65rem);
+    }
+
+    .top,
+    .bottom {
+        min-height: clamp(2.75rem, 12vh, 3.25rem);
+    }
+
+    .middle {
+        min-height: 0;
+        padding: 0;
+
+        .settings-wrapper {
+            height: 100%;
+            max-height: 100%;
+            align-items: center;
+        }
+
+        .settings-wrapper,
+        .setting-frame-basic,
+        .setting-frame-advanced {
+            gap: clamp(0.15rem, 1vh, 0.35rem);
+        }
+
+        .setting-frame-basic,
+        .setting-frame-advanced {
+            justify-content: center;
+        }
+    }
+
+    .btn-back,
+    .btn-save,
+    .btn-reset {
+        font-size: clamp(1.75rem, 8vh, 2.25rem);
+    }
+
+    .btn-save-placeholder,
+    .btn-placeholder {
+        width: clamp(2.25rem, 10vh, 3rem);
+        height: clamp(2.25rem, 10vh, 3rem);
+    }
+
+    .indicator {
+        font-size: clamp(0.9rem, 4vh, 1.2rem);
+    }
+
+    .setting-item-big {
+        label {
+            font-size: clamp(0.9rem, 4vh, 1.15rem);
+            line-height: 1.15;
+        }
+
+        .count-input {
+            gap: clamp(0.35rem, 2vw, 0.7rem);
+
+            .time-text {
+                font-size: clamp(1.8rem, 8vh, 2.45rem);
+                line-height: 1.1;
+            }
+
+            .btn-minus,
+            .btn-plus {
+                font-size: clamp(1.4rem, 6vh, 1.8rem);
+            }
+        }
+    }
+
+    .setting-item {
+        gap: 0.75rem;
+        min-height: clamp(2.25rem, 10vh, 2.75rem);
+
+        label {
+            font-size: clamp(0.9rem, 4vh, 1.15rem);
+            line-height: 1.2;
+        }
+    }
+
+    .setting-item-clean {
+        margin-top: 0.4rem;
+    }
+
+    .btn-clean {
+        font-size: clamp(1rem, 4.5vh, 1.15rem) !important;
+        padding: 0.35rem 0.85rem;
+
+        span {
+            font-size: clamp(0.8rem, 3.5vh, 0.95rem);
+        }
+    }
+}
+
+@media (max-height: 720px) and (orientation: portrait) {
+    .main {
+        padding: clamp(0.75rem, 3.5vh, 1.5rem) clamp(1.25rem, 8vw, 3rem);
+        gap: clamp(0.4rem, 1.2vh, 0.75rem);
+    }
+
+    .top,
+    .bottom {
+        min-height: 3rem;
+    }
+
+    .middle {
+        .settings-wrapper,
+        .setting-frame-basic,
+        .setting-frame-advanced {
+            gap: clamp(0.4rem, 1.2vh, 0.65rem);
+        }
+    }
+
+    .btn-back,
+    .btn-save,
+    .btn-reset {
+        font-size: 2.25rem;
+    }
+
+    .btn-save-placeholder,
+    .btn-placeholder {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .indicator {
+        font-size: 1.1rem;
+    }
+
+    .setting-item-clean {
+        margin-top: 0.75rem;
+    }
+}
+
 .bottom {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
+    min-height: 3.5rem;
+    position: relative;
+    z-index: 1;
 }
 
 .btn-placeholder {
@@ -378,6 +530,8 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
 
     &:hover {
         opacity: 0.7;
@@ -427,16 +581,19 @@ button {
     gap: 0;
 
     label {
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 4vh, 1.5rem);
         font-weight: 400;
+        line-height: 1.25;
     }
 
     .count-input {
         display: flex;
-        gap: 1rem;
+        align-items: center;
+        gap: clamp(0.75rem, 4vw, 1.25rem);
 
         .time-text {
-            font-size: 3rem;
+            font-size: clamp(2.5rem, 7.5vh, 3rem);
+            line-height: 1.1;
             text-align: center;
             width: 4ch;
             background: transparent;
@@ -469,6 +626,8 @@ button {
 
         button {
             padding: 0;
+            width: 2.75rem;
+            height: 2.75rem;
         }
     }
 }
@@ -481,17 +640,19 @@ button {
     gap: 1rem;
 
     label {
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 3.5vh, 1.5rem);
         font-weight: 400;
+        line-height: 1.25;
     }
 
     .count-input {
         display: flex;
         justify-content: center;
         align-items: center;
+        gap: 0.15rem;
 
         .time-text {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             text-align: center;
             width: 2ch;
             background: transparent;
@@ -519,18 +680,21 @@ button {
 
         .btn-minus,
         .btn-plus {
-            font-size: 1.25rem;
-            
+            font-size: 1.45rem;
         }
 
         button {
             padding: 0;
+            width: 2.5rem;
+            height: 2.5rem;
+            min-width: 2.5rem;
+            min-height: 2.5rem;
         }
     }
 
     input[type="checkbox"] {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 1.8rem;
+        height: 1.8rem;
         accent-color: var(--bright-color);
         cursor: pointer;
         flex-shrink: 0;
@@ -583,7 +747,8 @@ button:disabled {
     border-radius: 0.4rem;
     color: var(--bright-color);
     font-size: 1.25rem;
-    padding: 0.2rem 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.65rem;
     cursor: pointer;
 
     &:disabled {

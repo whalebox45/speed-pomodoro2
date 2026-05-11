@@ -282,9 +282,12 @@ function onKeyDown(e: KeyboardEvent) {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   color: var(--bright-color);
   padding: 10vh;
   transition: background-color 0.4s ease;
+  overflow: hidden;
 }
 
 .bg-work        { background-color: var(--primary-color); }
@@ -343,6 +346,55 @@ function onKeyDown(e: KeyboardEvent) {
  .timer {
     font-size: 20vw;
  } 
+}
+
+@media (max-height: 639px) and (orientation: landscape) {
+  .main {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: clamp(0.75rem, 3vh, 1rem) clamp(1rem, 4vw, 2rem);
+    gap: clamp(0.25rem, 1.5vh, 0.75rem);
+  }
+
+  .top,
+  .bottom {
+    flex: 0 0 auto;
+  }
+
+  .middle {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .session-title {
+    font-size: clamp(1rem, 5vh, 1.35rem);
+  }
+
+  .timer {
+    font-size: clamp(2.75rem, 16vh, 4rem);
+  }
+
+  button {
+    font-size: clamp(1.75rem, 8vh, 2.5rem);
+    padding: 0.25rem;
+  }
+
+  .btn-play {
+    font-size: clamp(2.25rem, 10vh, 3rem);
+  }
+
+  .btn-reset,
+  .btn-settings,
+  .btn-skip {
+    font-size: clamp(1.75rem, 8vh, 2.25rem);
+  }
+
+  .pending-indicator {
+    max-width: 60vw;
+    font-size: clamp(0.75rem, 3.5vh, 0.95rem);
+    text-align: center;
+  }
 }
 
 .hidden {
